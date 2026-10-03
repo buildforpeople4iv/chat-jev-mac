@@ -1,138 +1,141 @@
-# chat-jev.com（macOS）
+# chat-jev.com (macOS)
 
-微信弹出一条消息 → 悬浮窗立刻告诉你**这句话的真实意图**、**风险几级**、**该怎么回**。
+**English** · [简体中文](README.zh-CN.md)
 
-**纯只读、零封号风险**——不注入、不 hook、不解密数据库，只是「看屏幕 + 本地模型判断」。
+A WeChat message arrives → a floating panel immediately tells you **what it actually wants**, **how risky it is**, and **how to reply**.
 
-## 它能做什么
+**Strictly read-only, no account-ban risk** — no injection, no hooking, no database decryption. It only reads the screen and judges locally.
 
-- **意图 + 风险**：8 类意图零样本 **86.4%**（22 条回归口径），风险 0–9 分级 + 行动建议，本地模型一次前向出全分布
-- **候选回复**：内置 10 种话术并发生成（每条一稳一放各出 2 条）→ 先上屏 → 本地模型排序后原位重排；换话术立刻按当前消息重新生成
-- **快**：消息一出现判断 + 生成同时起跑，M1 Pro 出意图 ~1.5 s、出候选 ~1.5–2 s（端到端为机制推算口径，以日志实测为准）
-- **YOLO 检测框**（可选，`JEV_BOXES=1` 启动即开、菜单栏可切）：OCR 命中的消息实时框在微信窗口上，对方/我分色 + 置信度
+## What it does
 
-## 面板读法
+- **Intent + risk**: 8 intent classes, **86.4%** zero-shot (22-case regression); risk graded 0–9 with suggested actions, the full distribution from a single forward pass of a local model
+- **Reply candidates**: 10 built-in tones generated concurrently (2 per tone, one safe and one bold) → shown immediately → reordered in place once the local model ranks them; switching tones regenerates against the current message right away
+- **Fast**: judging and generation start together the moment a message appears. On an M1 Pro, intent in ~1.5 s, candidates in ~1.5–2 s (end-to-end figures are derived from the mechanism; trust the logs over this line)
+- **YOLO detection boxes** (optional, `JEV_BOXES=1` at launch or toggled from the menu bar): OCR-matched messages are boxed live on the WeChat window, colour-coded by sender, with confidence
 
-面板使用 macOS 原生浅色磨砂材质：顶部是当前聊天、分析状态、正在处理的消息与上下文；中间依次显示意图、识别率、风险等级和行动建议；底部按话术分组展示候选回复。当前风险圆点会轻微呼吸提示。每条候选左侧是本地排序概率，右侧仍只有「复制」和「填入」；候选行会随完整文字自动增高，不截断内容，发送始终由用户在微信里手动完成。
+## Reading the panel
 
-「不用」的话术槽只保留一行下拉选择，不生成也不占候选行；开启或关闭话术只改变面板高度，不改变判断与轮询流程。黄色窗口按钮收起到聊天名与状态，红色窗口按钮退出。
+The panel uses the native macOS light frosted material. The top shows the current chat, analysis state, the message being processed and its context; the middle shows intent, recognition rate, risk level and suggested actions; the bottom groups reply candidates by tone. The current risk dot breathes gently. Each candidate shows its local ranking probability on the left and still only **Copy** and **Fill** on the right; candidate rows grow to fit the full text rather than truncating it, and sending is always done by you, by hand, in WeChat.
 
-## 用法
+A tone slot set to "off" keeps only its dropdown — it generates nothing and occupies no candidate row. Enabling or disabling a tone changes only the panel height, never the judging or polling flow. The yellow window button collapses the panel to the chat name and status; the red one quits.
 
-**只想用**：[Releases](https://github.com/buildforpeople4iv/chat-jev-mac/releases/latest/download/chat-jev-macos-latest.zip) 下载 `.app`，解压拖进「应用程序」，**第一次右键 → 打开**（没做公证，双击会被 Gatekeeper 拦）。
+## Usage
 
-弹窗若显示「**已损坏，无法打开，你应该将它移到废纸篓**」（浏览器下载的 zip 常见，右键打开也绕不过），别删——在终端清掉隔离属性即可：
+**Just want to use it**: download the `.app` from [Releases](https://github.com/buildforpeople4iv/chat-jev-mac/releases/latest/download/chat-jev-macos-latest.zip), unzip it into Applications, and **right-click → Open the first time** (it is not notarized, so a double-click is blocked by Gatekeeper).
+
+If the dialog says **"is damaged and can't be opened. You should move it to the Trash"** (common for zips downloaded in a browser, and right-click-open does not get around it), do not delete it — clear the quarantine attribute in a terminal:
 
 ```bash
 sudo xattr -r -d com.apple.quarantine /Applications/chat-jev.app
 ```
 
-`.app` 若改过名（如「chat-jev 2.app」），把命令里的目录名换成实际路径。
+If you renamed the `.app` (to "chat-jev 2.app", say), substitute the actual path.
 
-首次启动按提示授予「屏幕录制」权限（系统设置 › 隐私与安全性 › 录屏与系统录音，给 **chat-jev** 打开），**退出重开**生效；「填入」另需「辅助功能」权限，第一次点会弹系统授权框。v0.3.1 及更早的旧版本还需把 **python3.12** 那条一并打开。
+On first launch, grant **Screen Recording** when prompted (System Settings › Privacy & Security › Screen & System Audio Recording, enable **chat-jev**), then **quit and reopen** for it to take effect. **Fill** additionally needs **Accessibility**; the system prompt appears the first time you use it. On v0.3.1 and earlier you also need to enable the **python3.12** entry.
 
-缺少可用的 uv 时，两种启动入口都先完整下载并执行官方安装脚本（下载含超时和重试），失败后尝试已有的 Homebrew。失败提示区分网络、证书、磁盘和安装器错误，详细输出见 `~/Library/Logs/chat-jev.log`。官方脚本安装到 `~/.local/bin`，不修改 shell 配置。
+When no usable `uv` is present, both launch paths first download and run the official installer script (the download has a timeout and retries), falling back to an existing Homebrew install. Failure messages distinguish network, certificate, disk and installer errors; full output goes to `~/Library/Logs/chat-jev.log`. The official script installs to `~/.local/bin` and does not modify your shell config.
 
-**从源码跑**（微信在运行、终端已授予屏幕录制）：`./start.command`。分层自测：
+**From source** (WeChat running, terminal granted Screen Recording): `./start.command`. Per-layer self-checks:
 
 ```bash
-uv run python src/perception.py                  # 感知层：识别到的消息 + 耗时
-uv run python src/judge.py "这个需求你今天跟一下"  # 单条消息出判断
-uv run python src/judge_zh_test.py               # 22 条中文意图回归
-uv run python src/generate.py --check            # 生成层凭据解析
-uv run python -B -m unittest discover -s tests   # 发出消息/异步结果回归（合成 OCR，不读屏）
-uv run python probe/bootstrap_regression.py      # 两种启动入口的离线回归；不联网、不实际安装
+uv run python src/perception.py                  # perception layer: messages recognised + timings
+uv run python src/judge.py "这个需求你今天跟一下"  # judge a single message
+uv run python src/judge_zh_test.py               # 22-case Chinese intent regression
+uv run python src/generate.py --check            # generation-layer credential resolution
+uv run python -B -m unittest discover -s tests   # outgoing-message / async-result regression (synthetic OCR, no screen reads)
+uv run python probe/bootstrap_regression.py      # offline regression for both launch paths; no network, no real install
 ```
 
-## 配置
+## Configuration
 
-两层、两个 key：判断层不填走本地 decider-2b（首次下载约 7 GB）；**生成层必须自己配**——本发行版不内置任何共享通道，不配就没有候选回复。数据流向见 [PRIVACY.md](PRIVACY.md)。全部配置在一个 env 文件（**不提供第二种格式**）：
+Two layers, two keys. The judging layer falls back to the local `decider-2b` if you leave it empty (~7 GB on first download). **The generation layer must be configured yourself** — this distribution ships no shared channel, so without a key there are no reply candidates. See [PRIVACY.md](PRIVACY.md) for where data goes. Everything lives in one env file (**there is no second format**):
 
-### 可视化配置（#18）
+### Settings window (#18)
 
-点击悬浮窗右上角 **齿轮图标（模型设置）**，或菜单栏 **J → 模型设置…**，可编辑 Jev、OpenAI 兼容、Anthropic 兼容三组密钥、服务地址与模型。
-设置窗口显示在悬浮窗上方，不会被面板遮挡。**保存后必须退出并重新打开应用**；保存不会切换本次运行的配置。
+Click the **gear icon (Model Settings)** at the top right of the panel, or **J → Model Settings…** in the menu bar, to edit the Jev, OpenAI-compatible and Anthropic-compatible key groups, endpoints and models. The settings window sits above the panel and is never covered by it. **You must quit and reopen the app after saving**; saving does not switch the configuration of the current run.
 
-- 窗口编辑 `$XDG_CONFIG_HOME/chat-jev/env`（未设置时为 `~/.config/chat-jev/env`），显示具体路径。只修改所编辑服务的字段，保留其他配置、注释和未识别行，文件权限设为 `600`。文件被其他程序修改时拒绝覆盖，需重新打开窗口。
-- 填好地址与密钥，点击「获取模型列表」从该服务的 `/models` 接口动态获取，再下拉选择；不内置模型清单。Jev 按官方 `models[].name` 读取（当前列表为别名，未列出的版本号仍可手填）；OpenAI/Anthropic 按 `data[].id` 读取。接口不支持、失败或返回空列表时明确提示，仍可手填，不自动换模型或服务。空下拉显示「暂无」（仅作提示，不作为模型保存或调用），仍可手填；底部动态提示以蓝色显示进行状态、绿色显示成功、红色显示错误。列表可见不代表一定有生成权限，选定后再测试。
-- 「测试连接」使用窗口内**尚未保存**的地址、密钥和模型发起实际调用，仅发送固定问候语，不读取微信内容；可能产生少量服务费用。生成层必须返回非空文字才算成功，不能用 `--check` 的配置解析成功代替连接成功。
-- 密钥掩码显示；窗口仅读取所编辑文件中的值，不把环境变量或项目 `.env` 复制进用户文件。各配置页顶部突出显示本次启动正在使用自己的密钥还是本地判断，以及实际来源；生成页同时标明当前启用的服务，优先级保留在窗口下方。
-- 环境变量优先于用户 env，用户 env 优先于项目 `.env`；生成层 OpenAI 组优先于 Anthropic 组，均未配置则生成层不可用。清空当前文件的密钥不会禁用其他来源中的密钥。由终端或启动器导出的值也显示为「环境变量」。
-- API 格式由密钥组决定：`OPENAI_*` 使用 OpenAI 格式，`ANTHROPIC_*` 使用 Anthropic 格式；自定义地址不需要包含服务名称。Ollama 可填 `http://localhost:11434/v1`、密钥 `ollama`，模型从本地服务获取或手填。Jev 地址带不带末尾 `/v1` 都行，与手动配置共用同一条拼接规则。
-- 钥匙串：不新增钥匙串读写。如果原 env 用 `$(security find-generic-password …)` 等 shell 表达式提供密钥，窗口不执行表达式、不展示其内容，未输入新密钥时保留原行；仍由已有启动器执行。要在窗口测试该服务，需明确输入密钥；保存将用输入值替换原表达式。外部注入的密钥继续遵循环境变量优先级。
-- `JEV_BOXES`、`JEV_TONES`、`OPENAI_EXTRA_BODY` 暂仍通过 env 配置，保存窗口不会改动它们。OpenAI 连接测试沿用当前启动的 `OPENAI_EXTRA_BODY`；完整话术管理等留待后续扩展。
+- The window edits `$XDG_CONFIG_HOME/chat-jev/env` (or `~/.config/chat-jev/env` when unset) and shows the exact path. It changes only the fields of the service being edited, preserving other settings, comments and unrecognised lines, and sets the file mode to `600`. If another program modifies the file, it refuses to overwrite and asks you to reopen the window.
+- Fill in the endpoint and key, click **Fetch model list** to pull from that service's `/models` endpoint, then pick from the dropdown; no model list is hardcoded. Jev reads the official `models[].name` (the current list is aliases; unlisted version numbers can still be typed in); OpenAI/Anthropic read `data[].id`. When the endpoint does not support it, fails, or returns an empty list, it says so plainly and you can still type a name — it never silently switches model or service. An empty dropdown shows "none" (a hint only; it is never saved or called). The status line at the bottom shows progress in blue, success in green, errors in red. Being listed does not guarantee generation access — test after selecting.
+- **Test connection** uses the **unsaved** endpoint, key and model currently in the window to make a real call. It sends a fixed greeting only and never reads WeChat content; it may incur a small service charge. The generation layer must return non-empty text to count as success — a successful `--check` config parse is not a successful connection.
+- Keys are masked. The window reads only the values in the file it is editing; it never copies environment variables or the project `.env` into your user file. The top of each page highlights whether this run is using your own key or local judging, and where it came from; the generation page also names the active service, with precedence shown at the bottom of the window.
+- Environment variables take precedence over the user env file, which takes precedence over the project `.env`. In the generation layer the OpenAI group wins over the Anthropic group; with neither configured, generation is unavailable. Clearing the key in the current file does not disable keys from other sources. Values exported by a terminal or launcher also display as "environment variable".
+- The API format follows the key group: `OPENAI_*` uses the OpenAI shape, `ANTHROPIC_*` the Anthropic shape; custom endpoints need not contain the service name. For Ollama use `http://localhost:11434/v1` with key `ollama`, and fetch or type the model. A Jev endpoint works with or without a trailing `/v1` — the same composition rule as manual configuration.
+- Keychain: no new keychain reads or writes. If your existing env supplies a key through a shell expression such as `$(security find-generic-password …)`, the window neither evaluates nor displays it, and keeps the original line when you type no new key; your existing launcher still evaluates it. To test that service from the window you must type a key explicitly, and saving replaces the expression with what you typed. Externally injected keys keep following environment-variable precedence.
+- `JEV_BOXES`, `JEV_TONES` and `OPENAI_EXTRA_BODY` are still env-only and untouched by the settings window. The OpenAI connection test reuses the `OPENAI_EXTRA_BODY` of the current run. Full tone management is left to a later change.
 
-也可继续手动编辑：
+You can also keep editing by hand:
 
 ```bash
 mkdir -p ~/.config/chat-jev
 cat > ~/.config/chat-jev/env <<'ENV'
-# 判断层（可选）：TypeSafe Jev，不填用本地 decider-2b
+# Judging layer (optional): TypeSafe Jev. Leave empty to use the local decider-2b.
 export TYPESAFE_API_KEY=""
 
-# 生成层：任意 OpenAI 兼容端点
-export OPENAI_API_KEY="sk-你的key"
+# Generation layer: any OpenAI-compatible endpoint
+export OPENAI_API_KEY="sk-your-key"
 export OPENAI_BASE_URL="https://api.deepseek.com"
 export OPENAI_MODEL="deepseek-chat"
-# 端点的思考模式要靠额外字段关时填（Qwen3 这类不关会慢几十倍）
+# Set this when the endpoint needs an extra field to turn thinking off
+# (Qwen3-class models are dozens of times slower with it on)
 # export OPENAI_EXTRA_BODY='{"enable_thinking":false}'
 ENV
 chmod 600 ~/.config/chat-jev/env
 ```
 
-- **凭据解析以 key 为准**：提供 key 的来源同时决定端点和模型。实测可用：DeepSeek `deepseek-chat`（最快）；智谱 `glm-4-flash`（换 `ANTHROPIC_API_KEY`/`ANTHROPIC_BASE_URL`/`ANTHROPIC_MODEL`，两组都填 OpenAI 组优先）；本地 Ollama `qwen2.5:7b`（完全不出网）
-- **判断层网关**：`TYPESAFE_BASE_URL` 三种填法等价可用——只到主机（`https://api.typesafe.ai`）、带版本段（`…/v1`，自动补动作段，不会出现 `/v1/v1/…`）、或填完整动作路径（填到动作段为止，原样使用、不再拼接）。第三方 TypeSafe 兼容网关填网关地址 + 网关 key，模型名按网关填写（如 Vercel AI Gateway 填 `https://ai-gateway.vercel.sh/v1/evaluate`、模型 `typesafe-ai/jev`）
-- **别用 thinking 模型**：思考吃光 `max_tokens`，候选 0 条，面板只报「候选生成失败」——DeepSeek 认准 `deepseek-chat`
-- **自定义话术**：env 加一行 `JEV_TONES`（`|` 分隔、每条「名字=说明」，同名覆盖内置，重启生效），如 `摸鱼大师=像资深摸鱼选手，把活推得漂亮又不失礼`；说明写清「什么语气 + 别变成什么」最管用
-- 自查凭据（不打印完整 key）：`uv run python src/generate.py --check`、`uv run python src/judge_jev.py`
+- **The key decides everything**: whichever source supplies the key also determines the endpoint and the model. Verified working: DeepSeek `deepseek-chat` (fastest); Zhipu `glm-4-flash` (via `ANTHROPIC_API_KEY`/`ANTHROPIC_BASE_URL`/`ANTHROPIC_MODEL` — with both groups set, OpenAI wins); local Ollama `qwen2.5:7b` (never leaves your machine)
+- **Judging-layer gateways**: three spellings of `TYPESAFE_BASE_URL` are equivalent — host only (`https://api.typesafe.ai`), with a version segment (`…/v1`, the action segment is appended, never producing `/v1/v1/…`), or a full action path (used verbatim, nothing appended). For a third-party TypeSafe-compatible gateway, use the gateway's endpoint and key and name the model as the gateway does (for example Vercel AI Gateway: `https://ai-gateway.vercel.sh/v1/evaluate`, model `typesafe-ai/jev`)
+- **Do not use thinking models**: reasoning eats the whole `max_tokens`, you get zero candidates, and the panel just reports a generation failure — on DeepSeek, stick to `deepseek-chat`
+- **Custom tones**: add a `JEV_TONES` line to your env (`|`-separated, each `name=description`; a built-in name is overridden; takes effect on restart), e.g. `摸鱼大师=像资深摸鱼选手，把活推得漂亮又不失礼`. Descriptions work best when they state both the voice and what it must not turn into
+- Check credentials without printing full keys: `uv run python src/generate.py --check`, `uv run python src/judge_jev.py`
 
-## 磁盘占用与清理
+## Disk usage and cleanup
 
-| 内容 | 位置 | 大小 | 清理 |
+| What | Where | Size | Cleanup |
 |---|---|---|---|
-| 判断层本地模型 `decider-2b`（不配判断层 key 才会下载，判断+排序共用） | `~/.cache/huggingface/hub/models--Mapika--decider-2b` | ~7 GB | `rm -rf ~/.cache/huggingface/hub/models--Mapika--decider-2b`；之后走本地判断会重新下载 |
-| Python 运行环境（venv） | `~/Library/Application Support/chat-jev/venv` | ~0.7 GB | 删除 .app 不会连带删它，需手动删 |
+| Local judging model `decider-2b` (downloaded only when no judging-layer key is set; shared by judging and ranking) | `~/.cache/huggingface/hub/models--Mapika--decider-2b` | ~7 GB | `rm -rf ~/.cache/huggingface/hub/models--Mapika--decider-2b`; it re-downloads next time local judging runs |
+| Python runtime (venv) | `~/Library/Application Support/chat-jev/venv` | ~0.7 GB | Deleting the `.app` does not remove it; delete it by hand |
 
-生成层配 Ollama 的话模型在 Ollama 自己的目录（`~/.ollama`），非本项目下载。
+With Ollama as the generation layer, models live in Ollama's own directory (`~/.ollama`) and are not downloaded by this project.
 
-## 已知限制
+## Known limitations
 
-- 收发方向靠文字位置判断：横跨左右或居中、无法确认方向的文本标「方向未确认」，**不作为回复目标**（很宽的对方消息可能被跳过）；只有明确识别为「对方」的消息才触发判断与生成，只有自己消息时面板显示「等待可确认的对方消息…」
-- 图片/表情包读不出内容；引用回复当普通文本；公众号卡片可能被当消息解读；微信全屏布局下识别可能失效（布局常量待动态化，见 #17）
-- 微信改版会让布局常量失效（`src/perception.py` 顶部常量需重新校准）；多窗口优先识别主窗口「微信 / WeChat」
-- 启动后第一条判断慢是正常现象（本地模型预热）；不对劲先看日志（分阶段耗时、**不含消息正文**，可放心贴 issue）：`tail -40 ~/Library/Logs/chat-jev.log`
+- Sender direction is inferred from text position. Text that spans both sides, is centred, or is otherwise unconfirmable is marked "direction unconfirmed" and is **never treated as a reply target** (a very wide incoming message may be skipped). Only messages positively identified as incoming trigger judging and generation; when only your own messages are visible the panel shows "waiting for a confirmable incoming message…"
+- Images and stickers cannot be read; quoted replies are treated as plain text; article cards may be read as messages; recognition may fail in WeChat's full-screen layout (layout constants need to become dynamic, see #17)
+- A WeChat redesign invalidates the layout constants (the constants at the top of `src/perception.py` need recalibrating); with multiple windows, the main "微信 / WeChat" window wins
+- The first judgement after launch is slow by design (local model warm-up). When something looks wrong, read the log first — it records per-stage timings and **never message text**, so it is safe to paste into an issue: `tail -40 ~/Library/Logs/chat-jev.log`
 
-## 输入区检测框与填入
+## Input-box detection and Fill
 
-菜单栏「YOLO 检测框」同时显示消息框和输入目标，约每秒刷新：蓝色实线表示辅助功能接口定位到的输入控件，橙色虚线表示从截图边界推测的输入区；无法定位时显示原因。虚线不代表已取得可写控件，也不修复 #17 的聊天区域固定比例问题。
+The menu bar's **YOLO detection boxes** show both message boxes and the fill target, refreshing about once a second: a solid blue box is the input control located through the Accessibility API, an orange dashed box is an input area inferred from the screenshot bounds, and when neither works it tells you why. A dashed box does not mean a writable control was obtained, and it does not fix the fixed-ratio chat-area problem in #17.
 
-「填入」优先通过辅助功能接口写入并读回确认。部分微信版本不提供输入控件时，显式点击「填入」会尝试视觉兼容路径：复核窗口、输入区和标题，激活微信、点击输入区、输入文字，再用 OCR 核对。该路径需要屏幕录制及辅助功能权限，会移动鼠标；填入期间请勿操作键鼠或切换聊天。不会自动按发送键，也不使用剪贴板或 Cmd+V；换行和制表符转换为空格。
+**Fill** writes through the Accessibility API first and reads the value back to confirm. On WeChat versions that expose no input control, clicking **Fill** explicitly falls back to a visual path: re-check the window, input area and title, activate WeChat, click the input area, type the text, then verify by OCR. That path needs both Screen Recording and Accessibility, and it moves the mouse — do not touch the keyboard or mouse, or switch chats, while it runs. It never presses send, and never uses the clipboard or Cmd+V; newlines and tabs become spaces.
 
-兼容路径读到已有草稿时停止，提示使用「复制」手动插入；辅助功能路径仍追加原有文字。窗口、焦点或会话变化时停止，画面无法确认时提示检查草稿，不自动重试。视觉边界及 OCR 都可能误判，标题检查也不是会话 ID，不能消除用户同时操作时的竞争；深色主题、多显示器与其他微信版本仍需更多验证。
+The fallback path stops when it finds an existing draft and tells you to use **Copy** instead; the Accessibility path still appends to existing text. Both stop when the window, focus or conversation changes, and when the screen cannot be verified they tell you to check the draft rather than retrying. Visual bounds and OCR can both misread, and a title check is not a conversation ID, so a race with your own typing cannot be ruled out. Dark mode, multiple displays and other WeChat versions still need more testing.
 
-## 下一步（按优先级）
+## Next steps (in priority order)
 
-1. **攒标注数据**：把误判的（尤其「催进度 vs 问进度」）记下来，微调冲 95%+
-2. **区分聊天消息和分享的文章卡片**：保守过滤，风险是误杀正常消息
+1. **Collect labelled data**: record misjudgements — especially "chasing progress vs asking progress" — and fine-tune toward 95%+
+2. **Tell chat messages from shared article cards**: filter conservatively; the risk is dropping real messages
 
-## 开发者
+## For developers
 
-- **贡献前必读**：[CONTRIBUTING.md](CONTRIBUTING.md)——动代码前先在 issue 认领（评论 + assignee），分层自测改哪层跑哪层
-- 配置界面自测：`uv run python -B -m unittest discover -s tests`；macOS 原生窗口与按钮流程：`uv run python -B probe/settings_smoke.py`（临时配置 + 本地测试服务，不使用个人密钥）。
-- 打包 `./packaging/build_app.sh`；发版 `./packaging/release.sh --publish`（干净 worktree 构建 + 解压回验 + gh release）。版本号只有 `pyproject.toml` 一处；有开发者证书可加 `--sign "Developer ID Application: ..."`
-- 架构一句话：进程内抓微信窗口 → Vision OCR（只扫聊天区）→ 本地 decider-2b 出意图/风险 → LLM 并发出候选 → 本地排序 → 悬浮窗 NSPanel。抓窗口不抓屏：微信被挡住也能抓，悬浮窗不污染 OCR
-- **浏览器扩展（`extension/`，开发中、与上面这个 macOS 应用相互独立）**：把同一套「判意图/判风险/给行动建议」搬到网页版聊天（WhatsApp Web、Telegram Web、Slack、Discord、Teams）。同样纯只读、从不代发，但**判断层是纯云端的**，没有本地模型这一档。装法、权限模型、诊断视图与已知限制见 [extension/README.md](extension/README.md)
+- **Read before contributing**: [CONTRIBUTING.md](CONTRIBUTING.md) — claim an issue before touching code (comment + assignee), and run the self-check for whichever layer you changed
+- Settings-window self-check: `uv run python -B -m unittest discover -s tests`; native window and button flow: `uv run python -B probe/settings_smoke.py` (temporary config plus a local test server, never your own keys)
+- Build with `./packaging/build_app.sh`; release with `./packaging/release.sh --publish` (clean-worktree build + unzip verification + gh release). The version number lives in `pyproject.toml` and nowhere else; with a developer certificate, add `--sign "Developer ID Application: ..."`
+- Architecture in one line: capture the WeChat window in-process → Vision OCR (chat area only) → local `decider-2b` for intent and risk → concurrent LLM candidates → local ranking → an `NSPanel` floating window. It captures the window, not the screen: WeChat can be covered, and the panel never pollutes the OCR
+- **Browser extension (`extension/`, in development, independent of the macOS app above)**: brings the same intent / risk / suggested-action analysis to web chat (WhatsApp Web, Telegram Web, Slack, Discord, Teams). Equally read-only and it never sends on your behalf, but **its judging layer is cloud-only** — there is no local-model option. Installation, the permission model, the diagnostic view and known limitations are in [extension/README.md](extension/README.md)
 
-## 来源与许可
+## Origin and licence
 
-本项目基于 [jev-chat/jev-chat-jarvis-mac](https://github.com/jev-chat/jev-chat-jarvis-mac) 二次开发
-（MIT，Copyright (c) 2026 eatmoreduck），完整保留其许可证与版权声明。
-本仓库自上游 `5b6e70a` 起分叉，为移除随历史分发的上游凭据，提交历史已压缩为一个初始提交；
-完整的上游历史请见上游仓库。相对上游的主要改动：
+This project is derived from [jev-chat/jev-chat-jarvis-mac](https://github.com/jev-chat/jev-chat-jarvis-mac)
+(MIT, Copyright (c) 2026 eatmoreduck), whose licence and copyright notice are retained in full.
+It forks from upstream `5b6e70a`; to avoid redistributing the upstream author's relay credential
+through git history, the history has been squashed into a single initial commit — the complete
+upstream history is in the upstream repository. The main differences from upstream:
 
-- 移除内置共享中转通道，改为全部自配 key（上游该通道经原作者服务器，不随本发行版分发）
-- 新增浏览器扩展 `extension/`，把能力从微信桌面版扩展到网页端聊天
+- The built-in shared relay channel is removed; every key is now your own (upstream's channel ran through the original author's server and is not redistributed here)
+- A browser extension `extension/` is added, extending the capability from WeChat on the desktop to web chat
 
-MIT（见 `LICENSE`）。只读**你自己屏幕上、你自己账号的**聊天内容，不注入、不 hook、不解密数据库、不自动发送任何消息。请在自己设备上自用；装到别人机器上读别人的聊天记录是另一回事，本项目不为那种用法背书。微信改版可能导致布局识别失效，请遵守微信软件许可协议。
+MIT (see `LICENSE`). It reads **only the chat on your own screen, in your own account** — no injection, no hooking, no database decryption, and it never sends anything on its own. Use it on your own device; installing it on someone else's machine to read their chats is a different matter, and this project does not endorse that. A WeChat redesign may break layout recognition. Please comply with the WeChat software licence agreement.
 
-**隐私与数据流向**详见 [PRIVACY.md](PRIVACY.md)：聊天内容只发给模型服务商——必须自配 API key，或用本地 Ollama 完全不出网。
+**Privacy and data flow** are detailed in [PRIVACY.md](PRIVACY.md): chat text goes only to the model provider you configure — you must supply your own API key, or run Ollama locally so nothing leaves your machine.
