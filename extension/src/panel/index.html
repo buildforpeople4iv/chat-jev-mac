@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>chat-jev</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font: 13px -apple-system, system-ui, sans-serif;
+        margin: 0;
+        padding: 12px;
+        color: #1f2328;
+      }
+      h1 { font-size: 14px; margin: 0 0 8px; }
+      h2 { font-size: 12px; margin: 0 0 6px; color: #57606a; text-transform: uppercase; letter-spacing: .04em; }
+      section { margin-bottom: 14px; }
+      button {
+        font: inherit; cursor: pointer; border: 1px solid #d0d7de; border-radius: 6px;
+        background: #f6f8fa; padding: 4px 10px;
+      }
+      button:disabled { cursor: not-allowed; opacity: .5; }
+      input, select {
+        font: inherit; border: 1px solid #d0d7de; border-radius: 6px; padding: 3px 6px; width: 100%;
+      }
+      label { display: block; font-size: 11px; color: #57606a; margin: 6px 0 2px; }
+
+      #siteRow { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      #siteOrigin { font-size: 11px; color: #57606a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #siteHint { font-size: 11px; color: #57606a; }
+
+      #status { color: #57606a; min-height: 16px; }
+      #convTitle { font-size: 13px; font-weight: 600; margin: 4px 0; word-break: break-word; }
+      #fuse {
+        display: none; background: #fff8c5; border: 1px solid #d4a72c; border-radius: 6px;
+        padding: 8px; margin: 8px 0;
+      }
+      #intent { font-size: 16px; font-weight: 600; margin: 6px 0 2px; }
+      #risk { color: #9a6700; margin-bottom: 6px; min-height: 14px; }
+      #actions { margin: 0; padding-left: 18px; color: #333; }
+
+      details { border: 1px solid #d0d7de; border-radius: 6px; padding: 8px 10px; }
+      summary { cursor: pointer; font-weight: 600; }
+      .hint { color: #57606a; font-size: 11px; margin: 6px 0; }
+      #diagnosticJson {
+        white-space: pre-wrap; word-break: break-word; background: #f6f8fa; border-radius: 6px;
+        padding: 8px; max-height: 240px; overflow: auto; font: 11px ui-monospace, monospace;
+      }
+      fieldset { border: 1px solid #d0d7de; border-radius: 6px; margin: 8px 0; padding: 8px; }
+      legend { font-size: 11px; color: #57606a; padding: 0 4px; }
+      .row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+      .savedNote, .copyNote { font-size: 11px; color: #1a7f37; }
+    </style>
+  </head>
+  <body>
+    <h1>chat-jev</h1>
+
+    <div id="siteRow">
+      <span id="siteOrigin"></span>
+      <button id="enableSite" type="button">Enable on this site</button>
+    </div>
+    <div id="siteHint"></div>
+
+    <section id="analysis">
+      <h2>Analysis</h2>
+      <div id="status">waiting for a message…</div>
+      <div id="fuse">
+        This conversation is very busy — automatic analysis is paused.
+        <button id="resume" type="button">Resume</button>
+      </div>
+      <div id="convTitle"></div>
+      <div id="intent"></div>
+      <div id="risk"></div>
+      <ul id="actions"></ul>
+    </section>
+
+    <details id="diagnosticSection">
+      <summary>Diagnostic</summary>
+      <p class="hint">
+        This only contains page structure, never chat content — safe to share.
+      </p>
+      <div class="row">
+        <button id="copyDiagnostic" type="button">Copy diagnostic</button>
+        <button id="refreshDiagnostic" type="button">Refresh</button>
+        <span id="copyStatus" class="copyNote"></span>
+      </div>
+      <pre id="diagnosticJson">no diagnostic yet</pre>
+    </details>
+
+    <details id="settingsSection">
+      <summary>Settings</summary>
+      <fieldset>
+        <legend>Jev</legend>
+        <label for="jevKey">API key</label>
+        <input id="jevKey" type="password" autocomplete="off" />
+        <label for="jevBase">Base URL</label>
+        <input id="jevBase" type="text" autocomplete="off" />
+        <label for="jevModel">Model</label>
+        <input id="jevModel" type="text" autocomplete="off" />
+      </fieldset>
+      <fieldset>
+        <legend>Generic LLM (OpenAI-compatible)</legend>
+        <label for="llmKey">API key</label>
+        <input id="llmKey" type="password" autocomplete="off" />
+        <label for="llmBase">Base URL</label>
+        <input id="llmBase" type="text" autocomplete="off" />
+        <label for="llmModel">Model</label>
+        <input id="llmModel" type="text" autocomplete="off" />
+      </fieldset>
+      <label for="lang">Language</label>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+      </select>
+      <div class="row">
+        <button id="saveConfig" type="button">Save</button>
+        <span id="saveStatus" class="savedNote"></span>
+      </div>
+    </details>
+
+    <!-- panel.js is bundled as an IIFE (see scripts/build.mjs) — not a module. -->
+    <script src="panel.js"></script>
+  </body>
+</html>

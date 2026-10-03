@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "chat-jev",
+  "version": "0.1.0",
+  "description": "Reads the chat you have open and suggests intent, risk and reply actions. Read-only: it never types or sends anything on your behalf.",
+  "minimum_chrome_version": "114",
+  "permissions": ["storage", "sidePanel", "scripting", "activeTab", "tabs"],
+  "optional_host_permissions": [
+    "https://web.whatsapp.com/*",
+    "https://web.telegram.org/*",
+    "https://app.slack.com/*",
+    "https://discord.com/*",
+    "https://teams.microsoft.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "panel/index.html"
+  },
+  "action": {
+    "default_title": "chat-jev"
+  }
+}

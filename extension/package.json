@@ -1,0 +1,23 @@
+{
+  "name": "chat-jev-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pretest": "node scripts/sync-definitions.mjs",
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "pretypecheck": "node scripts/sync-definitions.mjs",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "node scripts/sync-definitions.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/jsdom": "^21.1.0",
+    "@types/node": "^22.7.0",
+    "esbuild": "^0.24.0",
+    "jsdom": "^25.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
